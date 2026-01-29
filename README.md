@@ -4,6 +4,7 @@
 mkdir -p static/js static/css templates
 
 2 . Save files in respective folders
+
 3 . Install Flask:
 pip install flask
 
