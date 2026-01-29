@@ -1,0 +1,49 @@
+{
+  "questions": [
+    {
+      "id": 1,
+      "category": "python",
+      "difficulty": "easy",
+      "question": "What does this Python code output?\\n```python\\nprint(2 ** 3)\\n```",
+      "options": ["6", "8", "9", "23"],
+      "correct": 1,
+      "explanation": "The `**` operator is exponentiation in Python. 2³ = 8."
+    },
+    {
+      "id": 2,
+      "category": "javascript",
+      "difficulty": "medium",
+      "question": "What is the output?\\n```javascript\\nconsole.log(typeof []);\\n```",
+      "options": ["'array'", "'object'", "'list'", "'undefined'"],
+      "correct": 1,
+      "explanation": "In JavaScript, arrays are technically objects. `typeof []` returns 'object'."
+    },
+    {
+      "id": 3,
+      "category": "html",
+      "difficulty": "easy",
+      "question": "Which HTML element is used for the largest heading?",
+      "options": ["<h6>", "<header>", "<h1>", "<heading>"],
+      "correct": 2,
+      "explanation": "`<h1>` defines the most important heading (largest size by default)."
+    },
+    {
+      "id": 4,
+      "category": "css",
+      "difficulty": "medium",
+      "question": "What does `flex: 1` shorthand expand to?",
+      "options": ["flex: 1 0 0", "flex: 1 1 0", "flex: 0 1 auto", "flex: 1 1 0%"],
+      "correct": 3,
+      "explanation": "`flex: 1` is shorthand for `flex: 1 1 0%` (grow:1, shrink:1, basis:0%)."
+    },
+    {
+      "id": 5,
+      "category": "algorithms",
+      "difficulty": "hard",
+      "question": "What is the time complexity of quicksort in the worst case?",
+      "options": ["O(n log n)", "O(n)", "O(n²)", "O(log n)"],
+      "correct": 2,
+      "explanation": "Worst-case occurs when pivot selection is poor (e.g., already sorted array), resulting in O(n²) complexity."
+    }
+  ]
+}

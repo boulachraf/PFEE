@@ -3,75 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Quiz Adventure 🎮</title>
+    <title>CodeQuest 🚀 | Learn Programming Through Challenges</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/stackoverflow-dark.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/xml.min.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>🎮 Math Quiz Adventure</h1>
-            <p class="subtitle">Learn while having fun! Level up your math skills</p>
-        </header>
-
-        <!-- Game Stats -->
-        <div class="stats-bar">
-            <div class="stat-item">
-                <span class="stat-label">🏆 Score:</span>
-                <span id="score" class="stat-value">0</span>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">💻</div>
+                <h1>CodeQuest</h1>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">📊 Level:</span>
-                <span id="level" class="stat-value">1</span>
+            
+            <div class="category-filter">
+                <h3>Categories</h3>
+                <div class="filter-buttons" id="categoryFilters">
+                    <button class="filter-btn active" data-category="all">All</button>
+                </div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">🔥 Streak:</span>
-                <span id="streak" class="stat-value">0</span>
+            
+            <div class="difficulty-filter">
+                <h3>Difficulty</h3>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-difficulty="all">All</button>
+                    <button class="filter-btn" data-difficulty="easy">Easy</button>
+                    <button class="filter-btn" data-difficulty="medium">Medium</button>
+                    <button class="filter-btn" data-difficulty="hard">Hard</button>
+                </div>
             </div>
-            <div class="stat-item">
-                <span class="stat-label">⏱️ Time:</span>
-                <span id="timer" class="stat-value">0s</span>
+            
+            <div class="leaderboard">
+                <h3>🏆 Leaderboard</h3>
+                <ul id="leaderboardList">
+                    <li><span class="rank">1</span> <span class="name">Alex</span> <span class="score">420</span></li>
+                    <li><span class="rank">2</span> <span class="name">Sam</span> <span class="score">380</span></li>
+                    <li><span class="rank">3</span> <span class="name">Taylor</span> <span class="score">350</span></li>
+                </ul>
             </div>
-        </div>
-
-        <!-- Question Display -->
-        <div class="question-box" id="questionBox">
-            <div class="question-content" id="questionContent">
-                <div class="loader"></div>
-                <p>Loading your first question...</p>
+            
+            <div class="theme-toggle">
+                <button id="themeToggle">🌙 Dark Mode</button>
             </div>
-        </div>
-
-        <!-- Answer Input -->
-        <div class="answer-section">
-            <input type="number" id="answerInput" placeholder="Type your answer..." class="answer-input">
-            <button id="submitBtn" class="btn btn-primary">Submit Answer</button>
-            <button id="nextBtn" class="btn btn-secondary" style="display: none;">Next Question</button>
-        </div>
-
-        <!-- Feedback -->
-        <div class="feedback-box" id="feedbackBox"></div>
-
-        <!-- Progress Bar -->
-        <div class="progress-container">
-            <div class="progress-bar" id="progressBar">
-                <span class="progress-text">Level 1</span>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Game Stats -->
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">Score</span>
+                    <span id="score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Level</span>
+                    <span id="level" class="stat-value">1</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Streak</span>
+                    <span id="streak" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Questions</span>
+                    <span id="questionsCount" class="stat-value">0/20</span>
+                </div>
             </div>
-        </div>
-
-        <!-- Instructions -->
-        <div class="instructions">
-            <h3>📝 How to Play:</h3>
-            <ul>
-                <li>Answer math questions correctly to earn points</li>
-                <li>Each correct answer gives you +10 points</li>
-                <li>Reach 100 points to level up!</li>
-                <li>Maintain streaks for bonus points</li>
-                <li>Higher levels = harder questions = more points!</li>
-            </ul>
-        </div>
+            
+            <!-- Question Card -->
+            <div class="question-card" id="questionCard">
+                <div class="question-header">
+                    <span class="category-badge" id="categoryBadge">python</span>
+                    <span class="difficulty-badge" id="difficultyBadge">easy</span>
+                </div>
+                
+                <div class="question-content">
+                    <div class="loader" id="questionLoader">
+                        <div class="spinner"></div>
+                        <p>Fetching your next challenge...</p>
+                    </div>
+                    <div id="questionText" class="question-text"></div>
+                </div>
+                
+                <div class="options-container" id="optionsContainer">
+                    <!-- Options will be injected here -->
+                </div>
+                
+                <div class="feedback-area" id="feedbackArea"></div>
+                
+                <div class="action-buttons">
+                    <button id="nextBtn" class="btn btn-secondary" style="display: none;">
+                        Next Challenge →
+                    </button>
+                </div>
+            </div>
+            
+            <!-- How to Play -->
+            <div class="instructions-card">
+                <h3>🎮 How to Play</h3>
+                <ul>
+                    <li>Select a category and difficulty to focus your learning</li>
+                    <li>Answer questions correctly to earn points and level up</li>
+                    <li>Build streaks for bonus points (5 points per consecutive correct answer)</li>
+                    <li>Hard questions give more points but are challenging!</li>
+                    <li>Read explanations after each answer to learn concepts deeply</li>
+                </ul>
+                <div class="tips">
+                    <strong>💡 Pro Tip:</strong> Struggling with a concept? Click the explanation to see detailed breakdowns!
+                </div>
+            </div>
+        </main>
     </div>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Initialize syntax highlighting after DOM loads
+        document.addEventListener('DOMContentLoaded', () => {
+            hljs.highlightAll();
+        });
+    </script>
 </body>
 </html>
