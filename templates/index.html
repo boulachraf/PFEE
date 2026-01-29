@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz Adventure 🎮</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🎮 Math Quiz Adventure</h1>
+            <p class="subtitle">Learn while having fun! Level up your math skills</p>
+        </header>
+
+        <!-- Game Stats -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">🏆 Score:</span>
+                <span id="score" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">📊 Level:</span>
+                <span id="level" class="stat-value">1</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">🔥 Streak:</span>
+                <span id="streak" class="stat-value">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">⏱️ Time:</span>
+                <span id="timer" class="stat-value">0s</span>
+            </div>
+        </div>
+
+        <!-- Question Display -->
+        <div class="question-box" id="questionBox">
+            <div class="question-content" id="questionContent">
+                <div class="loader"></div>
+                <p>Loading your first question...</p>
+            </div>
+        </div>
+
+        <!-- Answer Input -->
+        <div class="answer-section">
+            <input type="number" id="answerInput" placeholder="Type your answer..." class="answer-input">
+            <button id="submitBtn" class="btn btn-primary">Submit Answer</button>
+            <button id="nextBtn" class="btn btn-secondary" style="display: none;">Next Question</button>
+        </div>
+
+        <!-- Feedback -->
+        <div class="feedback-box" id="feedbackBox"></div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar">
+                <span class="progress-text">Level 1</span>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <h3>📝 How to Play:</h3>
+            <ul>
+                <li>Answer math questions correctly to earn points</li>
+                <li>Each correct answer gives you +10 points</li>
+                <li>Reach 100 points to level up!</li>
+                <li>Maintain streaks for bonus points</li>
+                <li>Higher levels = harder questions = more points!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 # pfe
-📝 To Run:
+ To Run:
 1 . Create folder structure:
 mkdir -p static/js static/css templates
 
