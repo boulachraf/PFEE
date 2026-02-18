@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 AI Quiz Master</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 AI Quiz Master</h1>
+        
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-value" id="score">0</div>
+                <div class="stat-label">Score</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="level">1</div>
+                <div class="stat-label">Level</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="streak">0 <span class="streak-fire">🔥</span></div>
+                <div class="stat-label">Streak</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="topic" placeholder="Topic (e.g., Python, History, Science)">
+            <select id="difficulty">
+                <option value="all">All Difficulties</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            <button onclick="loadQuestion()">🔄 New Question</button>
+        </div>
+
+        <div id="game-area">
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>🤖 AI is generating your question...</p>
+            </div>
+            
+            <div id="question-container" style="display: none;">
+                <div class="question-box">
+                    <div class="question-text" id="question"></div>
+                    <div class="options" id="options"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feedback" id="feedback"></div>
+
+        <div class="actions">
+            <button id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
+            <button id="next-btn" onclick="loadQuestion()" style="display:none;">Next Question ➡️</button>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+</body>
+</html>

@@ -1,14 +1,15 @@
-# pfe
- To Run:
-1 . Create folder structure:
-mkdir -p static/js static/css templates
+# 🎓 AI Quiz Master
 
-2 . Save files in respective folders
+An educational online game powered by AI that generates unlimited questions on any topic!
 
-3 . Install Flask:
-pip install flask
+## 🚀 Setup
 
-4 . Run:
-python app.py
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
 
-5 . Open browser: http://localhost:5000
+2. **Run the app:**
+   python app.py
+
+3. **Open in browser:**
+   http://localhost:5000

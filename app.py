@@ -1,81 +1,116 @@
-from flask import Flask, request, jsonify, render_template
+import os
 import json
-import random
 import time
-from collections import defaultdict
+from flask import Flask, request, jsonify, render_template, send_file
+from openai import OpenAI
+from dotenv import load_dotenv
 
-app = Flask(__name__)
+# Load environment variables
+load_dotenv()
 
-# Load questions from JSON file
-with open('questions.json', 'r') as f:
-    QUESTIONS = json.load(f)['questions']
+app = Flask(__name__, template_folder='.')
+app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 
-# Store game sessions
+# Initialize AI Client
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+# Store game sessions (In production, use a database like Redis/SQL)
 sessions = {}
+
+# Difficulty points mapping
+DIFFICULTY_POINTS = {'easy': 10, 'medium': 20, 'hard': 30}
+
+# ============================================================================
+# ROUTES: Frontend Files (Securely served from root)
+# ============================================================================
 
 @app.route('/')
 def home():
     return render_template('index.html')
 
-@app.route('/api/categories')
-def get_categories():
-    categories = sorted(set(q['category'] for q in QUESTIONS))
-    return jsonify(categories)
+@app.route('/style.css')
+def serve_css():
+    return send_file('style.css', mimetype='text/css')
+
+@app.route('/script.js')
+def serve_js():
+    return send_file('script.js', mimetype='application/javascript')
+
+# ============================================================================
+# ROUTES: API Endpoints
+# ============================================================================
 
 @app.route('/api/get_question')
 def get_question():
     session_id = request.args.get('session_id', f'session_{int(time.time())}')
-    category = request.args.get('category', 'all')
+    topic = request.args.get('topic', 'General Knowledge')
     difficulty = request.args.get('difficulty', 'all')
     
-    # Filter questions
-    available = QUESTIONS
-    if category != 'all':
-        available = [q for q in available if q['category'] == category]
-    if difficulty != 'all':
-        available = [q for q in available if q['difficulty'] == difficulty]
-    
-    if not available:
-        available = QUESTIONS  # Fallback to all questions
-    
-    # Get unanswered questions for this session
-    if session_id in sessions and 'answered' in sessions[session_id]:
-        answered_ids = sessions[session_id]['answered']
-        available = [q for q in available if q['id'] not in answered_ids]
-    
-    if not available:
-        return jsonify({
-            'completed': True,
-            'message': '🎉 You\'ve answered all questions in this category!'
-        })
-    
-    # Select random question
-    question = random.choice(available)
-    
-    # Initialize session if needed
-    if session_id not in sessions:
-        sessions[session_id] = {
-            'score': 0,
-            'streak': 0,
-            'level': 1,
-            'answered': [],
-            'start_time': time.time()
+    try:
+        # Build prompt for AI
+        difficulty_prompt = ""
+        if difficulty != 'all':
+            difficulty_prompt = f"Make it {difficulty} difficulty."
+        
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": """You are an educational quiz game assistant. 
+                Generate multiple-choice questions. 
+                Output ONLY valid JSON in this exact format:
+                {
+                    "question": "The question text here",
+                    "options": ["Option A", "Option B", "Option C", "Option D"],
+                    "correct": 0,
+                    "explanation": "Brief explanation of why this is correct",
+                    "difficulty": "easy"
+                }
+                The "correct" field should be the INDEX (0-3) of the correct answer.
+                Difficulty should be: easy, medium, or hard."""},
+                {"role": "user", "content": f"Generate a multiple-choice question about {topic}. {difficulty_prompt}"}
+            ],
+            response_format={"type": "json_object"},
+            temperature=0.7
+        )
+        
+        data = json.loads(completion.choices[0].message.content)
+        
+        # Validate required fields
+        required_fields = ['question', 'options', 'correct', 'explanation']
+        for field in required_fields:
+            if field not in data:
+                raise ValueError(f'Missing field: {field}')
+        
+        # Set difficulty if not provided
+        if 'difficulty' not in data:
+            data['difficulty'] = difficulty if difficulty != 'all' else 'medium'
+        
+        # Initialize session if needed
+        if session_id not in sessions:
+            sessions[session_id] = {
+                'score': 0,
+                'streak': 0,
+                'level': 1,
+                'answered': [],
+                'start_time': time.time()
+            }
+        
+        # Store correct answer in session (NOT sent to client)
+        sessions[session_id]['current_correct'] = data['correct']
+        sessions[session_id]['current_explanation'] = data['explanation']
+        sessions[session_id]['current_difficulty'] = data['difficulty']
+        
+        # Prepare question data (remove correct answer from response)
+        question_data = {
+            'question': data['question'],
+            'options': data['options'],
+            'difficulty': data['difficulty']
         }
-    
-    # Store current question
-    sessions[session_id]['current_question'] = question['id']
-    
-    # Prepare question data (remove correct answer)
-    question_data = {
-        'id': question['id'],
-        'category': question['category'],
-        'difficulty': question['difficulty'],
-        'question': question['question'],
-        'options': question['options'],
-        'explanation': question.get('explanation', '')
-    }
-    
-    return jsonify(question_data)
+        
+        return jsonify(question_data)
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/check_answer', methods=['POST'])
 def check_answer():
@@ -83,27 +118,24 @@ def check_answer():
     session_id = data.get('session_id')
     selected_index = int(data.get('answer_index', -1))
     
-    if session_id not in sessions or 'current_question' not in sessions[session_id]:
+    if session_id not in sessions:
         return jsonify({'error': 'Invalid session'}), 400
     
-    # Find question
-    question_id = sessions[session_id]['current_question']
-    question = next((q for q in QUESTIONS if q['id'] == question_id), None)
+    session = sessions[session_id]
     
-    if not question:
-        return jsonify({'error': 'Question not found'}), 404
+    if 'current_correct' not in session:
+        return jsonify({'error': 'No active question'}), 400
     
     # Check answer
-    is_correct = (selected_index == question['correct'])
+    correct_index = session['current_correct']
+    is_correct = (selected_index == correct_index)
+    
+    # Get difficulty for scoring
+    difficulty = session.get('current_difficulty', 'medium')
     
     # Update session stats
-    session = sessions[session_id]
-    session['answered'].append(question_id)
-    
     if is_correct:
-        # Points based on difficulty
-        points = {'easy': 10, 'medium': 20, 'hard': 30}.get(question['difficulty'], 10)
-        # Streak bonus
+        points = DIFFICULTY_POINTS.get(difficulty, 10)
         streak_bonus = session['streak'] * 5 if session['streak'] > 0 else 0
         total_points = points + streak_bonus
         
@@ -111,25 +143,29 @@ def check_answer():
         session['streak'] += 1
         
         # Level up every 100 points
-        if session['score'] >= session['level'] * 100:
-            session['level'] += 1
+        session['level'] = (session['score'] // 100) + 1
     else:
         session['streak'] = 0
+        total_points = 0
+    
+    # Clear current question data
+    explanation = session.pop('current_explanation', 'No explanation available')
+    session.pop('current_correct', None)
+    session.pop('current_difficulty', None)
     
     return jsonify({
         'correct': is_correct,
-        'correct_answer': question['correct'],
-        'explanation': question.get('explanation', 'No explanation available'),
+        'correct_answer': correct_index,
+        'explanation': explanation,
         'points_earned': total_points if is_correct else 0,
         'streak': session['streak'],
         'score': session['score'],
-        'level': session['level']
+        'level': session['level'],
+        'message': '✅ Correct! ' + (f'+{total_points} points!' if is_correct else '❌ Wrong!')
     })
 
 @app.route('/api/leaderboard')
 def get_leaderboard():
-    # In production, this would come from a database
-    # For now, simulate with session data
     leaderboard = [
         {'name': 'Alex', 'score': 420, 'level': 5},
         {'name': 'Sam', 'score': 380, 'level': 4},
@@ -139,4 +175,6 @@ def get_leaderboard():
     return jsonify(leaderboard)
 
 if __name__ == '__main__':
+    print("🚀 Starting AI Quiz Master...")
+    print("📡 Make sure OPENAI_API_KEY is set in .env file")
     app.run(debug=True, host='0.0.0.0', port=5000)
