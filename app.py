@@ -12,7 +12,10 @@ app = Flask(__name__, template_folder='.')
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 
 # Initialize AI Client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+client = OpenAI(
+    api_key=os.getenv('GROQ_API_KEY'),
+    base_url="https://api.groq.com/openai/v1"
+)
 
 # Store game sessions (In production, use a database like Redis/SQL)
 sessions = {}
@@ -53,7 +56,7 @@ def get_question():
             difficulty_prompt = f"Make it {difficulty} difficulty."
         
         completion = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": """You are an educational quiz game assistant. 
                 Generate multiple-choice questions. 
