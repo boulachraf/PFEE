@@ -82,12 +82,10 @@ async function submitAnswer() {
             feedbackEl.innerHTML += `<div class="explanation">💡 ${result.explanation}</div>`;
         }
 
-        // Update stats
         document.getElementById('score').textContent = result.score;
         document.getElementById('level').textContent = result.level;
         document.getElementById('streak').innerHTML = result.streak + ' <span class="streak-fire">🔥</span>';
 
-        // Highlight correct/wrong answers
         const optionBtns = document.querySelectorAll('.option-btn');
         optionBtns[result.correct_answer].classList.add('correct');
         if (!result.correct) {
@@ -104,5 +102,4 @@ async function submitAnswer() {
     }
 }
 
-// Load first question on page load
 window.onload = loadQuestion;

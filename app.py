@@ -5,27 +5,19 @@ from flask import Flask, request, jsonify, render_template, send_file
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 app = Flask(__name__, template_folder='.')
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 
-# Initialize AI Client
 client = OpenAI(
     api_key=os.getenv('GROQ_API_KEY'),
     base_url="https://api.groq.com/openai/v1"
 )
 
-# Store game sessions (In production, use a database like Redis/SQL)
 sessions = {}
 
-# Difficulty points mapping
 DIFFICULTY_POINTS = {'easy': 10, 'medium': 20, 'hard': 30}
-
-# ============================================================================
-# ROUTES: Frontend Files (Securely served from root)
-# ============================================================================
 
 @app.route('/')
 def home():
@@ -39,10 +31,6 @@ def serve_css():
 def serve_js():
     return send_file('script.js', mimetype='application/javascript')
 
-# ============================================================================
-# ROUTES: API Endpoints
-# ============================================================================
-
 @app.route('/api/get_question')
 def get_question():
     session_id = request.args.get('session_id', f'session_{int(time.time())}')
@@ -50,7 +38,6 @@ def get_question():
     difficulty = request.args.get('difficulty', 'all')
     
     try:
-        # Build prompt for AI
         difficulty_prompt = ""
         if difficulty != 'all':
             difficulty_prompt = f"Make it {difficulty} difficulty."
@@ -78,17 +65,14 @@ def get_question():
         
         data = json.loads(completion.choices[0].message.content)
         
-        # Validate required fields
         required_fields = ['question', 'options', 'correct', 'explanation']
         for field in required_fields:
             if field not in data:
                 raise ValueError(f'Missing field: {field}')
         
-        # Set difficulty if not provided
         if 'difficulty' not in data:
             data['difficulty'] = difficulty if difficulty != 'all' else 'medium'
         
-        # Initialize session if needed
         if session_id not in sessions:
             sessions[session_id] = {
                 'score': 0,
@@ -98,12 +82,10 @@ def get_question():
                 'start_time': time.time()
             }
         
-        # Store correct answer in session (NOT sent to client)
         sessions[session_id]['current_correct'] = data['correct']
         sessions[session_id]['current_explanation'] = data['explanation']
         sessions[session_id]['current_difficulty'] = data['difficulty']
         
-        # Prepare question data (remove correct answer from response)
         question_data = {
             'question': data['question'],
             'options': data['options'],
@@ -129,14 +111,11 @@ def check_answer():
     if 'current_correct' not in session:
         return jsonify({'error': 'No active question'}), 400
     
-    # Check answer
     correct_index = session['current_correct']
     is_correct = (selected_index == correct_index)
     
-    # Get difficulty for scoring
     difficulty = session.get('current_difficulty', 'medium')
     
-    # Update session stats
     if is_correct:
         points = DIFFICULTY_POINTS.get(difficulty, 10)
         streak_bonus = session['streak'] * 5 if session['streak'] > 0 else 0
@@ -145,13 +124,11 @@ def check_answer():
         session['score'] += total_points
         session['streak'] += 1
         
-        # Level up every 100 points
         session['level'] = (session['score'] // 100) + 1
     else:
         session['streak'] = 0
         total_points = 0
     
-    # Clear current question data
     explanation = session.pop('current_explanation', 'No explanation available')
     session.pop('current_correct', None)
     session.pop('current_difficulty', None)
