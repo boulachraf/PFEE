@@ -4,42 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎓 AI Quiz Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Segoe+UI&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>🎓 AI Quiz Master</h1>
+        <!-- Language Selector -->
+        <div class="language-selector">
+            <select id="language-select" onchange="changeLanguage()">
+                <option value="en">🇺 English</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="ar">🇸🇦 العربية</option>
+            </select>
+        </div>
+
+        <h1 data-translate="title">🎓 AI Quiz Master</h1>
         
         <div class="stats-bar">
             <div class="stat">
                 <div class="stat-value" id="score">0</div>
-                <div class="stat-label">Score</div>
+                <div class="stat-label" data-translate="score">Score</div>
             </div>
             <div class="stat">
                 <div class="stat-value" id="level">1</div>
-                <div class="stat-label">Level</div>
+                <div class="stat-label" data-translate="level">Level</div>
             </div>
             <div class="stat">
                 <div class="stat-value" id="streak">0 <span class="streak-fire">🔥</span></div>
-                <div class="stat-label">Streak</div>
+                <div class="stat-label" data-translate="streak">Streak</div>
             </div>
         </div>
 
         <div class="controls">
-            <input type="text" id="topic" placeholder="Topic (e.g., Python, History, Science)">
+            <input type="text" id="topic" data-translate-placeholder="topic_placeholder" placeholder="Topic (e.g., Python, History, Science)">
             <select id="difficulty">
-                <option value="all">All Difficulties</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
+                <option value="all" data-translate="all_difficulties">All Difficulties</option>
+                <option value="easy" data-translate="easy">Easy</option>
+                <option value="medium" data-translate="medium">Medium</option>
+                <option value="hard" data-translate="hard">Hard</option>
             </select>
-            <button onclick="loadQuestion()">🔄 New Question</button>
+            <button onclick="loadQuestion()" data-translate="new_question">🔄 New Question</button>
         </div>
 
         <div id="game-area">
             <div class="loading" id="loading">
                 <div class="loading-spinner"></div>
-                <p>🤖 AI is generating your question...</p>
+                <p data-translate="ai_generating">🤖 AI is generating your question...</p>
             </div>
             
             <div id="question-container" style="display: none;">
@@ -53,11 +63,36 @@
         <div class="feedback" id="feedback"></div>
 
         <div class="actions">
-            <button id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
-            <button id="next-btn" onclick="loadQuestion()" style="display:none;">Next Question ➡️</button>
+            <button id="submit-btn" onclick="submitAnswer()" data-translate="submit_answer">Submit Answer</button>
+            <button id="next-btn" onclick="loadQuestion()" style="display:none;" data-translate="next_question">Next Question ➡️</button>
+            <button onclick="resetSession()" class="btn-secondary" data-translate="clear_history" title="Clear question history">🗑️ Clear History</button>
+        </div>
+        
+        <div style="text-align:center;margin-top:15px;font-size:11px;color:#888;">
+            <span data-translate="session">Session</span>: <span id="session-display"></span>
+            <span id="cache-info" style="margin-left:10px;"></span>
         </div>
     </div>
 
+    <script>
+        // Show session ID
+        document.addEventListener('DOMContentLoaded', () => {
+            const sessionId = 'session_' + Date.now();
+            window.sessionId = sessionId; // Make global for script.js
+            document.getElementById('session-display').textContent = sessionId.substring(0, 20) + '...';
+            
+            // Load saved language
+            loadSavedLanguage();
+            
+            // Update cache info periodically
+            setInterval(() => {
+                const info = document.getElementById('cache-info');
+                if (info && typeof askedQuestionCache !== 'undefined') {
+                    info.textContent = `📦 ${Math.floor(askedQuestionCache.size/2)} questions`;
+                }
+            }, 5000);
+        });
+    </script>
     <script src="/script.js"></script>
 </body>
 </html>
